@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>WMF2PNG</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/default.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+  </head>
+  <body>
+      <header>
+          <div class="header container">
+              <h1>WMF2PNG</h1>
+              <div class="information-wmf">
+                  <h2>What is a WMF File?</h2>
+                  <p class="container">.WMF is short for Windows Metafile. This image format was designed by Microsoft in the 1990s for their Windows Operating System. WMF files contain both vector graphics and raster components at the same time. It includes sort of programming commands which enables the creation of lines, circles, and rectangles on the viewing applications. This 16-bit image format is portable between applications. Also, WMF is the native vector format of Microsoft Office applications (MS Word, MS PowerPoint and MS Publisher). This format is also supported in PaintShop Pro.</p>
+              </div>
+              <hr />
+              <div class="information-png">
+                  <h2>What is a PNG File?</h2>
+                  <p class="container">.PNG stands for “Portable Graphics Format”. It is the most frequently used uncompressed raster image format on the internet. This lossless data compression format was created to replace the Graphics Interchange Format (GIF). PNG file format is an open format with no copyright limitations. Like GIF images, PNG also have the ability to display transparent backgrounds. In addition to that, PNG files are capable of containing 24bit RGB color palettes and greyscale images. Basically, this image format was designed to transfer images on the internet but with PaintShop Pro, PNG files can be applied with lots of editing effects.</p>
+              </div>
+              <hr />
+              <div class="information-wmf2png">
+                  <h2>What is WMF2PNG?</h2>
+                  <p class="container">WMF2PNG is designed to convert .wmf images to .png images.</p>
+                  <h2>How to use it ?</h2>
+                  <p class="container">To use it you need to download WMF2PNG.js file and connect it to your html file, then add this code to your js file: </p>
+                  <pre class="container">
+                      <code class="language-javascript">WMF2PNG.getPNG(file) // <--- .wmf image
+.then((result) => console.log(result)); // <--- this is png image</code>
+                  </pre>
+                  <p class="container">or</p>
+                  <pre class="container">
+                      <code class="language-javascript">const result = await WMF2PNG.getPNG(file); // <--- .wmf image
+console.log(result); // <--- this is png image</code>
+                  </pre>
+              </div>
+              <hr>
+          </div>
+      </header>
+      <div class="upload-image container">
+          <h1>Demo</h1>
+          <div class="custom-file">
+              <input type="file" class="custom-file-input" id="files">
+              <label class="custom-file-label" for="inputGroupFile01">Upload your .wmf image</label>
+          </div>
+          <div id="img" class="container mt-5"></div>
+          <a href="../WMF2PNG.js" download class="mt-5"><h2>Download WMF2PNG.js</h2></a>
+      </div>
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/highlight.min.js"></script>
+
+      <script type="text/javascript">
+          hljs.highlightAll();
+      </script>
+      <script src="./js/UDOC.js"></script>
+      <script src="./js/FromWMF.js"></script>
+      <script src="./js/ToContext2D.js"></script>
+      <script src="./js/WMF2PNG.js"></script>
+      <script src="./js/demo.js"></script>
+  </body>
+</html>
