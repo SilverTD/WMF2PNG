@@ -1,1 +1,949 @@
-var UDOC={};function FromWMF(){}function ToContext2D(t,r){this.canvas=document.createElement("canvas"),this.ctx=this.canvas.getContext("2d"),this.bb=null,this.currPage=0,this.needPage=t,this.scale=r}UDOC.G={concat:function(t,r){for(var e=0;e<r.cmds.length;e++)t.cmds.push(r.cmds[e]);for(e=0;e<r.crds.length;e++)t.crds.push(r.crds[e])},getBB:function(t){for(var r=1e99,e=1e99,o=-r,n=-e,T=0;T<t.length;T+=2){var a=t[T],E=t[T+1];a<r?r=a:a>o&&(o=a),E<e?e=E:E>n&&(n=E)}return[r,e,o,n]},rectToPath:function(t){return{cmds:["M","L","L","L","Z"],crds:[t[0],t[1],t[2],t[1],t[2],t[3],t[0],t[3]]}},insideBox:function(t,r){return r[0]<=t[0]&&r[1]<=t[1]&&t[2]<=r[2]&&t[3]<=r[3]},isBox:function(t,r){var e=function(t,r){for(var e=0;e<8;e+=2){for(var o=!0,n=0;n<8;n++)if(Math.abs(r[n]-t[n+e&7])>=2){o=!1;break}if(o)return!0}return!1};if(t.cmds.length>10)return!1;var o=t.cmds.join(""),n=t.crds,T=!1;if("MLLLZ"==o&&8==n.length||"MLLLLZ"==o&&10==n.length){10==n.length&&(n=n.slice(0,8));var a=r[0],E=r[1],i=r[2],l=r[3];T||(T=e(n,[a,E,i,E,i,l,a,l])),T||(T=e(n,[a,l,i,l,i,E,a,E]))}return T},boxArea:function(t){return(t[2]-t[0])*(t[3]-t[1])},newPath:function(t){t.pth={cmds:[],crds:[]}},moveTo:function(t,r,e){var o=UDOC.M.multPoint(t.ctm,[r,e]);t.pth.cmds.push("M"),t.pth.crds.push(o[0],o[1]),t.cpos=o},lineTo:function(t,r,e){var o=UDOC.M.multPoint(t.ctm,[r,e]);t.cpos[0]==o[0]&&t.cpos[1]==o[1]||(t.pth.cmds.push("L"),t.pth.crds.push(o[0],o[1]),t.cpos=o)},curveTo:function(t,r,e,o,n,T,a){var E;r=(E=UDOC.M.multPoint(t.ctm,[r,e]))[0],e=E[1],o=(E=UDOC.M.multPoint(t.ctm,[o,n]))[0],n=E[1],T=(E=UDOC.M.multPoint(t.ctm,[T,a]))[0],a=E[1],t.cpos=E,t.pth.cmds.push("C"),t.pth.crds.push(r,e,o,n,T,a)},closePath:function(t){t.pth.cmds.push("Z")},arc:function(t,r,e,o,n,T,a){if(a)for(;T>n;)T-=2*Math.PI;else for(;T<n;)T+=2*Math.PI;var E=(T-n)/4,i=Math.cos(E/2),l=-Math.sin(E/2),c=(4-i)/3,s=0==l?l:(1-i)*(3-i)/(3*l),f=c,M=-s,h=i,C=-l,u=[c,s],O=[f,M],A=[h,C],m={cmds:[0==t.pth.cmds.length?"M":"L","C","C","C","C"],crds:[i,l,c,s,f,M,h,C]},P=[1,0,0,1,0,0];UDOC.M.rotate(P,-E);for(var d=0;d<3;d++)u=UDOC.M.multPoint(P,u),O=UDOC.M.multPoint(P,O),A=UDOC.M.multPoint(P,A),m.crds.push(u[0],u[1],O[0],O[1],A[0],A[1]);var D=[o,0,0,o,r,e];UDOC.M.rotate(P,E/2-n),UDOC.M.concat(P,D),UDOC.M.multArray(P,m.crds),UDOC.M.multArray(t.ctm,m.crds),UDOC.G.concat(t.pth,m);e=m.crds.pop();r=m.crds.pop(),t.cpos=[r,e]},toPoly:function(t){if("M"!=t.cmds[0]||"Z"!=t.cmds[t.cmds.length-1])return null;for(var r=1;r<t.cmds.length-1;r++)if("L"!=t.cmds[r])return null;var e=[],o=t.crds.length;t.crds[0]==t.crds[o-2]&&t.crds[1]==t.crds[o-1]&&(o-=2);for(r=0;r<o;r+=2)e.push([t.crds[r],t.crds[r+1]]);return UDOC.G.polyArea(t.crds)<0&&e.reverse(),e},fromPoly:function(t){for(var r={cmds:[],crds:[]},e=0;e<t.length;e++)r.crds.push(t[e][0],t[e][1]),r.cmds.push(0==e?"M":"L");return r.cmds.push("Z"),r},polyArea:function(t){if(t.length<6)return 0;for(var r=t.length-2,e=(t[0]-t[r])*(t[r+1]+t[1]),o=0;o<r;o+=2)e+=(t[o+2]-t[o])*(t[o+1]+t[o+3]);return.5*-e},polyClip:function(t,r){var e,o,n=function(t){return(E[0]-e[0])*(t[1]-e[1])>(E[1]-e[1])*(t[0]-e[0])},T=function(){var t=[e[0]-E[0],e[1]-E[1]],r=[o[0]-c[0],o[1]-c[1]],n=e[0]*E[1]-e[1]*E[0],T=o[0]*c[1]-o[1]*c[0],a=1/(t[0]*r[1]-t[1]*r[0]);return[(n*r[0]-T*t[0])*a,(n*r[1]-T*t[1])*a]},a=t;for(j in e=r[r.length-1],r){var E=r[j],l=a;for(i in a=[],o=l[l.length-1],l){var c;n(c=l[i])?(n(o)||a.push(T()),a.push(c)):n(o)&&a.push(T()),o=c}e=E}return a}},UDOC.M={getScale:function(t){return Math.sqrt(Math.abs(t[0]*t[3]-t[1]*t[2]))},translate:function(t,r,e){UDOC.M.concat(t,[1,0,0,1,r,e])},rotate:function(t,r){UDOC.M.concat(t,[Math.cos(r),-Math.sin(r),Math.sin(r),Math.cos(r),0,0])},scale:function(t,r,e){UDOC.M.concat(t,[r,0,0,e,0,0])},concat:function(t,r){var e=t[0],o=t[1],n=t[2],T=t[3],a=t[4],E=t[5];t[0]=e*r[0]+o*r[2],t[1]=e*r[1]+o*r[3],t[2]=n*r[0]+T*r[2],t[3]=n*r[1]+T*r[3],t[4]=a*r[0]+E*r[2]+r[4],t[5]=a*r[1]+E*r[3]+r[5]},invert:function(t){var r=t[0],e=t[1],o=t[2],n=t[3],T=t[4],a=t[5],E=r*n-e*o;t[0]=n/E,t[1]=-e/E,t[2]=-o/E,t[3]=r/E,t[4]=(o*a-n*T)/E,t[5]=(e*T-r*a)/E},multPoint:function(t,r){var e=r[0],o=r[1];return[e*t[0]+o*t[2]+t[4],e*t[1]+o*t[3]+t[5]]},multArray:function(t,r){for(var e=0;e<r.length;e+=2){var o=r[e],n=r[e+1];r[e]=o*t[0]+n*t[2]+t[4],r[e+1]=o*t[1]+n*t[3]+t[5]}}},UDOC.C={srgbGamma:function(t){return t<.0031308?12.92*t:1.055*Math.pow(t,1/2.4)-.055},cmykToRgb:function(t){var r=t[0],e=t[1],o=t[2],n=t[3],T=255+r*(-4.387332384609988*r+54.48615194189176*e+18.82290502165302*o+212.25662451639585*n-285.2331026137004)+e*(1.7149763477362134*e-5.6096736904047315*o+-17.873870861415444*n-5.497006427196366)+o*(-2.5217340131683033*o-21.248923337353073*n+17.5119270841813)+n*(-21.86122147463605*n-189.48180835922747),a=255+r*(8.841041422036149*r+60.118027045597366*e+6.871425592049007*o+31.159100130055922*n-79.2970844816548)+e*(-15.310361306967817*e+17.575251261109482*o+131.35250912493976*n-190.9453302588951)+o*(4.444339102852739*o+9.8632861493405*n-24.86741582555878)+n*(-20.737325471181034*n-187.80453709719578),E=255+r*(.8842522430003296*r+8.078677503112928*e+30.89978309703729*o-.23883238689178934*n-14.183576799673286)+e*(10.49593273432072*e+63.02378494754052*o+50.606957656360734*n-112.23884253719248)+o*(.03296041114873217*o+115.60384449646641*n-193.58209356861505)+n*(-22.33816807309886*n-180.12613974708367);return[Math.max(0,Math.min(1,T/255)),Math.max(0,Math.min(1,a/255)),Math.max(0,Math.min(1,E/255))]},labToRgb:function(t){for(var r=903.3,e=.008856,o=t[0],n=t[1],T=(o+16)/116,a=T*T*T,E=T-t[2]/200,i=E*E*E,l=n/500+T,c=l*l*l,s=[96.72*(c>e?c:(116*l-16)/r)/100,100*(a>e?a:(116*T-16)/r)/100,81.427*(i>e?i:(116*E-16)/r)/100],f=[3.1338561,-1.6168667,-.4906146,-.9787684,1.9161415,.033454,.0719453,-.2289914,1.4052427],M=[f[0]*s[0]+f[1]*s[1]+f[2]*s[2],f[3]*s[0]+f[4]*s[1]+f[5]*s[2],f[6]*s[0]+f[7]*s[1]+f[8]*s[2]],h=0;h<3;h++)M[h]=Math.max(0,Math.min(1,UDOC.C.srgbGamma(M[h])));return M}},UDOC.getState=function(t){return{font:UDOC.getFont(),dd:{flat:1},space:"/DeviceGray",ca:1,colr:[0,0,0],sspace:"/DeviceGray",CA:1,COLR:[0,0,0],bmode:"/Normal",SA:!1,OPM:0,AIS:!1,OP:!1,op:!1,SMask:"/None",lwidth:1,lcap:0,ljoin:0,mlimit:10,SM:.1,doff:0,dash:[],ctm:[1,0,0,1,0,0],cpos:[0,0],pth:{cmds:[],crds:[]},cpth:t?UDOC.G.rectToPath(t):null}},UDOC.getFont=function(){return{Tc:0,Tw:0,Th:100,Tl:0,Tf:"Helvetica-Bold",Tfs:1,Tmode:0,Trise:0,Tk:0,Tal:0,Tun:0,Tm:[1,0,0,1,0,0],Tlm:[1,0,0,1,0,0],Trm:[1,0,0,1,0,0]}},FromWMF.Parse=function(t,r){t=new Uint8Array(t);var e=0,o={fill:!1,strk:!1,bb:[0,0,1,1],lbb:[0,0,1,1],scl:1,fnt:{nam:"Arial",hgh:25,und:!1,orn:0,chrst:0},tclr:[0,0,0],talg:0},n=FromWMF.B.readShort,T=FromWMF.B.readUshort,a=FromWMF.B.readUint;if(2596720087==a(t,0)){var E=n(t,(e=6)+8);o.scl=120/E;for(var i=0;i<4;i++)o.bb[i]=Math.round(n(t,e)*o.scl),e+=2;e+=2,e+=6}r.StartPage(o.bb[0],o.bb[1],o.bb[2],o.bb[3]);var l=UDOC.getState(o.bb);T(t,e),T(t,e+=2),T(t,e+=2),a(t,e+=2),T(t,e+=4),a(t,e+=2),T(t,e+=4);e+=2;for(var c=[];;){var s=a(t,e)<<1,f=T(t,e+=4);e+=2;var M=FromWMF.K[f],h=e,C=null;if("EOF"==M)break;if("ESCAPE"==M){var u=T(t,e);h+=2;var O=FromWMF.K2[u];console.log(M,O)}else if("SETMAPMODE"==M||"SETPOLYFILLMODE"==M||"SETBKMODE"==M);else if("SELECTOBJECT"==M){var A=T(t,h);h+=2;var m=c[A];if("br"==m.t){if(o.fill=1!=m.stl,0==m.stl);else if(1!=m.stl)throw m.stl+" e";l.colr=m.clr}else if("pn"==m.t){var P=7&m.stl;if(o.strk=5!=P,0==P||6==P)l.lwidth=m.px;else if(5!=P)throw P+" e";0!=(4096&m.stl)?l.ljoin=2:0!=(8192&m.stl)?l.ljoin=0:l.ljoin=1,l.COLR=m.clr}else{if("fn"!=m.t)throw"e";o.fnt=m,l.font.Tf=m.nam,l.font.Tfs=Math.abs(m.hgh),l.font.Tun=m.und}}else if("DELETEOBJECT"==M){A=T(t,h);h+=2,c[A]=null}else if("SETWINDOWORG"==M||"SETWINDOWEXT"==M){var d="SETWINDOWORG"==M?0:2;o.lbb[d+1]=n(t,h),h+=2,o.lbb[d]=n(t,h),h+=2,FromWMF._updateCtm(o,l)}else if("CREATEBRUSHINDIRECT"==M)(C={t:"br"}).stl=T(t,h),h+=2,C.clr=[t[h]/255,t[h+1]/255,t[h+2]/255],h+=4,C.htc=T(t,h),h+=2;else if("CREATEPENINDIRECT"==M)(C={t:"pn"}).stl=T(t,h),h+=2,C.px=n(t,h),h+=2,C.py=n(t,h),h+=2,C.clr=[t[h]/255,t[h+1]/255,t[h+2]/255],h+=4;else if("CREATEFONTINDIRECT"==M){(C={t:"fn",nam:""}).hgh=n(t,h),h+=2,h+=4,C.orn=n(t,h)/10;var D=n(t,h+=2);for(h+=2,C.und=t[h+1],h+=2,C.stk=t[h],C.chrst=t[e+1],h+=2,h+=4;0!=t[h];)C.nam+=String.fromCharCode(t[h]),h++;D>500&&(C.nam+="-Bold")}else if("CREATEPALETTE"==M)C={t:"pl"};else if("SETTEXTCOLOR"==M)o.tclr=[t[h]/255,t[h+1]/255,t[h+2]/255];else if("SETTEXTALIGN"==M)o.talg=T(t,h);else if("MOVETO"==M)UDOC.G.moveTo(l,n(t,h+2),n(t,h));else if("LINETO"==M){if(0==l.pth.cmds.length){var S=l.ctm.slice(0);UDOC.M.invert(S);var F=UDOC.M.multPoint(S,l.cpos);UDOC.G.moveTo(l,F[0],F[1])}UDOC.G.lineTo(l,n(t,h+2),n(t,h));var I=o.fill;o.fill=!1,FromWMF._draw(r,l,o),o.fill=I}else if("POLYPOLYGON"==M){var R=T(t,h),_=h+=2;h+=2*R;for(i=0;i<R;i++){var v=T(t,_+2*i);h=FromWMF._drawPoly(t,h,v,l,!0)}FromWMF._draw(r,l,o)}else if("POLYGON"==M||"POLYLINE"==M){v=T(t,h);h+=2,h=FromWMF._drawPoly(t,h,v,l,"POLYGON"==M);I=o.fill;o.fill=I&&"POLYGON"==M,FromWMF._draw(r,l,o),o.fill=I}else if("RECTANGLE"==M||"ELLIPSE"==M){var L=n(t,h),p=n(t,h+=2),g=n(t,h+=2),N=n(t,h+=2);if(h+=2,"RECTANGLE"==M)UDOC.G.moveTo(l,N,g),UDOC.G.lineTo(l,p,g),UDOC.G.lineTo(l,p,L),UDOC.G.lineTo(l,N,L);else{var U=(N+p)/2,G=(g+L)/2;UDOC.G.arc(l,U,G,(L-g)/2,0,2*Math.PI,!1)}UDOC.G.closePath(l);I=o.fill;o.fill=!0,FromWMF._draw(r,l,o),o.fill=I}else if("STRETCHDIB"==M){a(t,h),T(t,h+=4);var B=n(t,h+=2),W=n(t,h+=2),b=(n(t,h+=2),n(t,h+=2),n(t,h+=2)),w=n(t,h+=2),y=n(t,h+=2),x=n(t,h+=2);h+=2;var H=FromWMF._loadDIB(t,h),X=l.ctm.slice(0);l.ctm=[1,0,0,1,0,0],UDOC.M.scale(l.ctm,w,-b),UDOC.M.translate(l.ctm,x,y+b),UDOC.M.concat(l.ctm,X),r.PutImage(l,H,W,B),l.ctm=X}else if("EXTTEXTOUT"==M){var Y=n(t,h),k=n(t,h+=2);h+=2,l.font.Tm=[1,0,0,-1,0,0],UDOC.M.rotate(l.font.Tm,o.fnt.orn*Math.PI/180),UDOC.M.translate(l.font.Tm,k,Y);var V=o.talg;if(6==(6&V))l.font.Tal=2;else if(0==(7&V))l.font.Tal=0;else{if(0!=(4&V))throw V+" e";l.font.Tal=4}if(24==(24&V));else{if(0!=(24&V))throw"e";UDOC.M.translate(l.font.Tm,0,l.font.Tfs)}var K=T(t,h),Z=T(t,h+=2);h+=2,4&Z&&(h+=8);var J="";for(i=0;i<K;i++){var j=t[h+i];j>127&&(j=j<<8|t[h+ ++i]),J+=String.fromCharCode(j)}var q=l.colr;l.colr=o.tclr,r.PutText(l,J,J.length*l.font.Tfs*.5),l.colr=q}else console.log(M,s);if(null!=C){for(var Q=0;null!=c[Q];)Q++;c[Q]=C}e+=s-6}r.ShowPage(),r.Done()},FromWMF._loadDIB=function(t,r){FromWMF.B.readShort;var e,o,n,T=FromWMF.B.readUshort,a=FromWMF.B.readUint;if(12==a(t,r))throw"e";e=a(t,r+=4),o=a(t,r+=4);var E=T(t,r+=4);if(1!=E)throw"e";var i=T(t,r+=2);if(1!=i&&24!=i&&32!=i)throw i+" e";if(0!=a(t,r+=2))throw"e";a(t,r+=4),a(t,r+=4),a(t,r+=4);n=a(t,r+=4);a(t,r+=4);r+=4;var l=new Uint8Array(4*(e*o)),c=Math.floor((e*E*i+31&-32)/8);if(1==i)for(var s=0;s<o;s++)for(var f=r+4*n+(o-1-s)*c,M=0;M<e;M++){var h=s*e+M<<2,C=t[f+(M>>>3)]>>>7-(7&M)&1;l[h]=t[r+4*C+2],l[h+1]=t[r+4*C+1],l[h+2]=t[r+4*C+0],l[h+3]=255}if(24==i)for(s=0;s<o;s++)for(M=0;M<e;M++){var u=r+(o-1-s)*c+3*M;l[h=s*e+M<<2]=t[u+2],l[h+1]=t[u+1],l[h+2]=t[u+0],l[h+3]=255}if(32==i)for(s=0;s<o;s++)for(M=0;M<e;M++){u=r+(o-1-s)*c+4*M;l[h=s*e+M<<2]=t[u+2],l[h+1]=t[u+1],l[h+2]=t[u+0],l[h+3]=t[u+3]}return l},FromWMF._updateCtm=function(t,r){var e=[1,0,0,1,0,0],o=t.lbb,n=t.bb;UDOC.M.translate(e,-o[0],-o[1]),UDOC.M.scale(e,1/o[2],1/o[3]),UDOC.M.scale(e,n[2]-n[0],n[3]-n[1]),UDOC.M.translate(e,n[0],n[1]),r.ctm=e},FromWMF._draw=function(t,r,e){e.fill&&t.Fill(r,!1),e.strk&&0!=r.lwidth&&t.Stroke(r,!1),UDOC.G.newPath(r)},FromWMF._drawPoly=function(t,r,e,o,n){for(var T=FromWMF.B.readShort,a=0;a<e;a++){var E=T(t,r),i=T(t,r+=2);r+=2,0==a?UDOC.G.moveTo(o,E,i):UDOC.G.lineTo(o,E,i)}return n&&UDOC.G.closePath(o),r},FromWMF.B={uint8:new Uint8Array(4),readShort:function(t,r){var e=FromWMF.B.uint8;return e[0]=t[r],e[1]=t[r+1],FromWMF.B.int16[0]},readUshort:function(t,r){var e=FromWMF.B.uint8;return e[0]=t[r],e[1]=t[r+1],FromWMF.B.uint16[0]},readUint:function(t,r){var e=FromWMF.B.uint8;return e[0]=t[r],e[1]=t[r+1],e[2]=t[r+2],e[3]=t[r+3],FromWMF.B.uint32[0]},readASCII:function(t,r,e){for(var o="",n=0;n<e;n++)o+=String.fromCharCode(t[r+n]);return o}},FromWMF.B.int16=new Int16Array(FromWMF.B.uint8.buffer),FromWMF.B.uint16=new Uint16Array(FromWMF.B.uint8.buffer),FromWMF.B.uint32=new Uint32Array(FromWMF.B.uint8.buffer),FromWMF.C={META_EOF:0,META_REALIZEPALETTE:53,META_SETPALENTRIES:55,META_SETBKMODE:258,META_SETMAPMODE:259,META_SETROP2:260,META_SETRELABS:261,META_SETPOLYFILLMODE:262,META_SETSTRETCHBLTMODE:263,META_SETTEXTCHAREXTRA:264,META_RESTOREDC:295,META_RESIZEPALETTE:313,META_DIBCREATEPATTERNBRUSH:322,META_SETLAYOUT:329,META_SETBKCOLOR:513,META_SETTEXTCOLOR:521,META_OFFSETVIEWPORTORG:529,META_LINETO:531,META_MOVETO:532,META_OFFSETCLIPRGN:544,META_FILLREGION:552,META_SETMAPPERFLAGS:561,META_SELECTPALETTE:564,META_POLYGON:804,META_POLYLINE:805,META_SETTEXTJUSTIFICATION:522,META_SETWINDOWORG:523,META_SETWINDOWEXT:524,META_SETVIEWPORTORG:525,META_SETVIEWPORTEXT:526,META_OFFSETWINDOWORG:527,META_SCALEWINDOWEXT:1040,META_SCALEVIEWPORTEXT:1042,META_EXCLUDECLIPRECT:1045,META_INTERSECTCLIPRECT:1046,META_ELLIPSE:1048,META_FLOODFILL:1049,META_FRAMEREGION:1065,META_ANIMATEPALETTE:1078,META_TEXTOUT:1313,META_POLYPOLYGON:1336,META_EXTFLOODFILL:1352,META_RECTANGLE:1051,META_SETPIXEL:1055,META_ROUNDRECT:1564,META_PATBLT:1565,META_SAVEDC:30,META_PIE:2074,META_STRETCHBLT:2851,META_ESCAPE:1574,META_INVERTREGION:298,META_PAINTREGION:299,META_SELECTCLIPREGION:300,META_SELECTOBJECT:301,META_SETTEXTALIGN:302,META_ARC:2071,META_CHORD:2096,META_BITBLT:2338,META_EXTTEXTOUT:2610,META_SETDIBTODEV:3379,META_DIBBITBLT:2368,META_DIBSTRETCHBLT:2881,META_STRETCHDIB:3907,META_DELETEOBJECT:496,META_CREATEPALETTE:247,META_CREATEPATTERNBRUSH:505,META_CREATEPENINDIRECT:762,META_CREATEFONTINDIRECT:763,META_CREATEBRUSHINDIRECT:764,META_CREATEREGION:1791},FromWMF.C2={NEWFRAME:1,ABORTDOC:2,NEXTBAND:3,SETCOLORTABLE:4,GETCOLORTABLE:5,FLUSHOUT:6,DRAFTMODE:7,QUERYESCSUPPORT:8,SETABORTPROC:9,STARTDOC:10,ENDDOC:11,GETPHYSPAGESIZE:12,GETPRINTINGOFFSET:13,GETSCALINGFACTOR:14,META_ESCAPE_ENHANCED_METAFILE:15,SETPENWIDTH:16,SETCOPYCOUNT:17,SETPAPERSOURCE:18,PASSTHROUGH:19,GETTECHNOLOGY:20,SETLINECAP:21,SETLINEJOIN:22,SETMITERLIMIT:23,BANDINFO:24,DRAWPATTERNRECT:25,GETVECTORPENSIZE:26,GETVECTORBRUSHSIZE:27,ENABLEDUPLEX:28,GETSETPAPERBINS:29,GETSETPRINTORIENT:30,ENUMPAPERBINS:31,SETDIBSCALING:32,EPSPRINTING:33,ENUMPAPERMETRICS:34,GETSETPAPERMETRICS:35,POSTSCRIPT_DATA:37,POSTSCRIPT_IGNORE:38,GETDEVICEUNITS:42,GETEXTENDEDTEXTMETRICS:256,GETPAIRKERNTABLE:258,EXTTEXTOUT:512,GETFACENAME:513,DOWNLOADFACE:514,METAFILE_DRIVER:2049,QUERYDIBSUPPORT:3073,BEGIN_PATH:4096,CLIP_TO_PATH:4097,END_PATH:4098,OPEN_CHANNEL:4110,DOWNLOADHEADER:4111,CLOSE_CHANNEL:4112,POSTSCRIPT_PASSTHROUGH:4115,ENCAPSULATED_POSTSCRIPT:4116,POSTSCRIPT_IDENTIFY:4117,POSTSCRIPT_INJECTION:4118,CHECKJPEGFORMAT:4119,CHECKPNGFORMAT:4120,GET_PS_FEATURESETTING:4121,MXDC_ESCAPE:4122,SPCLPASSTHROUGH2:4568},FromWMF.K=[],FromWMF.K2=[],function(){var t,r,e;for(var o in t=FromWMF.C,r=FromWMF.K,e=5,t)r[t[o]]=o.slice(e);for(var o in t=FromWMF.C2,r=FromWMF.K2,e=0,t)r[t[o]]=o.slice(e)}(),ToContext2D.prototype.StartPage=function(t,r,e,o){if(this.currPage==this.needPage){this.bb=[t,r,e,o];var n=this.scale,T=window.devicePixelRatio,a=this.canvas,E=this.ctx;a.width=Math.round(e*n),a.height=Math.round(o*n),E.translate(0,o*n),E.scale(n,-n),a.setAttribute("style","border:1px solid; width:"+a.width/T+"px; height:"+a.height/T+"px")}},ToContext2D.prototype.Fill=function(t,r){if(this.currPage==this.needPage){var e=this.ctx;e.beginPath(),this._setStyle(t,e),this._draw(t.pth,e),e.fill()}},ToContext2D.prototype.Stroke=function(t){if(this.currPage==this.needPage){var r=this.ctx;r.beginPath(),this._setStyle(t,r),this._draw(t.pth,r),r.stroke()}},ToContext2D.prototype.PutText=function(t,r,e){if(this.currPage==this.needPage){this._scale(t.ctm);var o=this.ctx;this._setStyle(t,o),o.save();var n=[1,0,0,-1,0,0];this._concat(n,t.font.Tm),this._concat(n,t.ctm),o.transform(n[0],n[1],n[2],n[3],n[4],n[5]),o.fillText(r,0,0),o.restore()}},ToContext2D.prototype.PutImage=function(t,r,e,o,n){if(this.currPage==this.needPage){var T=this.ctx;if(r.length==e*o*4){if(r=r.slice(0),n&&n.length==e*o*4)for(var a=0;a<r.length;a+=4)r[a+3]=n[a+1];var E=document.createElement("canvas"),i=E.getContext("2d");E.width=e,E.height=o;var l=i.createImageData(e,o);for(a=0;a<r.length;a++)l.data[a]=r[a];i.putImageData(l,0,0),T.save();var c=[1,0,0,1,0,0];this._concat(c,[1/e,0,0,-1/o,0,1]),this._concat(c,t.ctm),T.transform(c[0],c[1],c[2],c[3],c[4],c[5]),T.drawImage(E,0,0),T.restore()}}},ToContext2D.prototype.ShowPage=function(){this.currPage++},ToContext2D.prototype.Done=function(){},ToContext2D.prototype._setStyle=function(t,r){var e=this._scale(t.ctm);r.fillStyle=this._getFill(t.colr,t.ca,r),r.strokeStyle=this._getFill(t.COLR,t.CA,r),r.lineCap=["butt","round","square"][t.lcap],r.lineJoin=["miter","round","bevel"][t.ljoin],r.lineWidth=t.lwidth*e;for(var o=t.dash.slice(0),n=0;n<o.length;n++)o[n]=ToPDF._flt(o[n]*e);r.setLineDash(o),r.miterLimit=t.mlimit*e;var T=t.font.Tf,a=T.toLowerCase(),E=-1!=a.indexOf("bold")?"bold ":"",i=-1!=a.indexOf("italic")||-1!=a.indexOf("oblique")?"italic ":"";r.font=E+i+t.font.Tfs+'px "'+T+'"'},ToContext2D.prototype._getFill=function(t,r,e){if(null==t.typ)return this._colr(t,r);var o,n=t,T=n.crds,a=n.mat,E=this._scale(a);if("lin"==n.typ){var i=this._multPoint(a,T.slice(0,2)),l=this._multPoint(a,T.slice(2));o=e.createLinearGradient(i[0],i[1],l[0],l[1])}else if("rad"==n.typ){i=this._multPoint(a,T.slice(0,2)),l=this._multPoint(a,T.slice(3));o=e.createRadialGradient(i[0],i[1],T[2]*E,l[0],l[1],T[5]*E)}for(var c=0;c<n.grad.length;c++)o.addColorStop(n.grad[c][0],this._colr(n.grad[c][1],r));return o},ToContext2D.prototype._colr=function(t,r){return"rgba("+Math.round(255*t[0])+","+Math.round(255*t[1])+","+Math.round(255*t[2])+","+r+")"},ToContext2D.prototype._scale=function(t){return Math.sqrt(Math.abs(t[0]*t[3]-t[1]*t[2]))},ToContext2D.prototype._concat=function(t,r){var e=t[0],o=t[1],n=t[2],T=t[3],a=t[4],E=t[5];t[0]=e*r[0]+o*r[2],t[1]=e*r[1]+o*r[3],t[2]=n*r[0]+T*r[2],t[3]=n*r[1]+T*r[3],t[4]=a*r[0]+E*r[2]+r[4],t[5]=a*r[1]+E*r[3]+r[5]},ToContext2D.prototype._multPoint=function(t,r){var e=r[0],o=r[1];return[e*t[0]+o*t[2]+t[4],e*t[1]+o*t[3]+t[5]]},ToContext2D.prototype._draw=function(t,r){for(var e=0,o=t.crds,n=0;n<t.cmds.length;n++){var T=t.cmds[n];"M"==T?(r.moveTo(o[e],o[e+1]),e+=2):"L"==T?(r.lineTo(o[e],o[e+1]),e+=2):"C"==T?(r.bezierCurveTo(o[e],o[e+1],o[e+2],o[e+3],o[e+4],o[e+5]),e+=6):"Q"==T?(r.quadraticCurveTo(o[e],o[e+1],o[e+2],o[e+3]),e+=4):"Z"==T&&r.closePath()}};const WMF2PNG=(()=>{function t(){}return t.prototype.getBase64=async function(t){return new Promise((r,e)=>{const o=new FileReader;o.onload=(()=>{r(o.result)}),o.readAsDataURL(t)})},t.prototype.getPNG=async function(t){let r=(await this.getBase64(t)).replace(/.*;base64,/,""),e=window.atob(r);const o=new Uint8Array(e.length);for(let t=e.length-1;t>=0;--t)o[t]=e.charCodeAt(t);let n=new ToContext2D(0,1);FromWMF.Parse(o,n);let T=n.canvas,{width:a,height:E}=T,i=T.getContext("2d"),{data:l}=i.getImageData(0,0,a,E),c=4*a,s=E,f=[];for(let t=0;t<s;t++){let r=l.slice(t*c,(t+1)*c);f.push(r)}var M=document.createElement("canvas");M.width=a,M.height=E;let h=M.getContext("2d"),C=new Uint8ClampedArray(c*s),u=f.length;for(let t=u-1;t>=0;t--){let r=f[t];for(let e=0;e<r.length;e++)C[(u-t)*c+e]=r[e]}let O=new ImageData(C,a,E);h.putImageData(O,0,0);let A=M.toDataURL(),m=new Image;return m.src=A,m.width=a,m.height=E,m.outerHTML},new t})();
+function FromWMF ()
+{
+}
+
+FromWMF.Parse = function(buff, genv)
+{
+    buff = new Uint8Array(buff);  var off=0;
+    var prms = {fill:false, strk:false, bb:[0,0,1,1], lbb:[0,0,1,1], scl:1, fnt:{nam:"Arial",hgh:25,und:false,orn:0,chrst:0}, tclr:[0,0,0], talg:0};
+
+    var rS = FromWMF.B.readShort, rU = FromWMF.B.readUshort, rU32 = FromWMF.B.readUint;
+
+    var key = rU32(buff,0);
+    if(key==0x9AC6CDD7) {
+        off = 6;
+        var dpi = rS(buff, off+8);  prms.scl=120/dpi;
+        for(var i=0; i<4; i++) {  prms.bb[i] = Math.round(rS(buff,off)*prms.scl);  off+=2;  }
+        off+=2;
+        //console.log(prms.bb, dpi);
+        off += 6;
+        //console.log(bb, dpi);
+    }
+
+    genv.StartPage(prms.bb[0],prms.bb[1],prms.bb[2],prms.bb[3]);
+
+
+
+    var gst = UDOC.getState(prms.bb);
+
+    var type = rU(buff, off);  off+=2;
+    var hSiz = rU(buff, off);  off+=2;
+    var vrsn = rU(buff, off);  off+=2;
+    var size = rU32(buff, off);  off+=4;
+    var nomb = rU(buff, off);  off+=2;
+    var mRec = rU32(buff, off);  off+=4;
+    var nomb = rU(buff, off);  off+=2;
+
+    //console.log(type, hSiz, vrsn, size, nomb, mRec, nomb);
+
+    //gst.colr= [0.8,0,0.8];     // purple fill color
+    //gst.pth = {  cmds:["M","L","L","L","Z"], crds:[20,20,80,20,80,80,20,80]  };  // a square
+    //genv.Fill(gst);
+    //console.log(buff.slice(0,64));
+
+    var tab = [];
+
+    var opn=0;
+    while(true) {
+
+        var siz = rU32(buff, off)<<1;  off+=4;
+        var fnc = rU  (buff, off);     off+=2;
+        var fnm = FromWMF.K[fnc];
+        var loff = off;
+
+        //if(opn++==24) break;
+        var obj = null;
+        //console.log(fnm, siz);
+
+        if(false) {}
+        else if(fnm=="EOF") break;
+        else if(fnm=="ESCAPE") {
+            var esf = rU  (buff, off);     loff+=2;
+            var fnm2 = FromWMF.K2[esf];
+            console.log(fnm, fnm2);
+        }
+        else if(fnm=="SETMAPMODE" || fnm=="SETPOLYFILLMODE" || fnm=="SETBKMODE") {}
+        else if(fnm=="SELECTOBJECT") {
+            var ind = rU(buff, loff);  loff+=2;
+            var co = tab[ind];  //console.log(co);
+            if(co.t=="br") {
+                prms.fill=co.stl!=1;
+                if     (co.stl==0) {}
+                else if(co.stl==1) {}
+                else throw co.stl+" e";
+                gst.colr=co.clr;
+                //if(co.htc!=0) throw co.stl+" "+co.htc+" e";
+            }
+            else if(co.t=="pn") {
+                var stl = (co.stl&7);
+                prms.strk=stl!=5;
+                if     (stl==0 || stl==6) gst.lwidth = co.px;
+                else if(stl==5) {}
+                else throw stl+" e";
+
+                if((co.stl&0x1000)!=0) gst.ljoin=2;  // bevel
+                else if((co.stl&0x2000)!=0) gst.ljoin=0;  // miter
+                else gst.ljoin = 1;  // round
+                gst.COLR=co.clr;
+            }
+            else if(co.t=="fn") {
+                prms.fnt = co;
+                gst.font.Tf = co.nam;
+                gst.font.Tfs = Math.abs(co.hgh);
+                gst.font.Tun = co.und;
+            }
+            else throw "e";
+        }
+        else if(fnm=="DELETEOBJECT") {
+            var ind = rU(buff, loff);  loff+=2;
+            tab[ind]=null;
+        }
+        else if(fnm=="SETWINDOWORG" || fnm=="SETWINDOWEXT") {
+            var coff = fnm=="SETWINDOWORG" ? 0 : 2;
+            prms.lbb[coff+1] = rS(buff, loff);  loff+=2;
+            prms.lbb[coff  ] = rS(buff, loff);  loff+=2;
+            FromWMF._updateCtm(prms, gst);
+        }
+        else if(fnm=="CREATEBRUSHINDIRECT") {
+            obj = {t:"br"};
+            obj.stl = rU(buff, loff);  loff+=2;
+            obj.clr = [buff[loff]/255, buff[loff+1]/255, buff[loff+2]/255];  loff+=4;
+            obj.htc = rU(buff, loff);  loff+=2;
+        }
+        else if(fnm=="CREATEPENINDIRECT") {
+            obj = {t:"pn"};
+            obj.stl = rU(buff, loff);  loff+=2;
+            obj.px  = rS(buff, loff);  loff+=2;
+            obj.py  = rS(buff, loff);  loff+=2;  //console.log(stl, px, py);
+            obj.clr = [buff[loff]/255, buff[loff+1]/255, buff[loff+2]/255];  loff+=4;
+        }
+        else if(fnm=="CREATEFONTINDIRECT") {
+            obj = {t:"fn", nam:""};
+            //obj.stl = rU(buff, loff);  loff+=2;
+            obj.hgh = rS(buff, loff);  loff += 2;
+            loff += 2*2;
+            obj.orn = rS(buff, loff)/10;  loff+=2;
+            var wgh = rS(buff, loff);  loff+=2;  //console.log(wgh);
+            obj.und = buff[loff+1];  loff += 2;
+            obj.stk = buff[loff  ];  obj.chrst = buff[off+1];  loff += 2;  //console.log(obj.chrst);
+            loff+=4;
+            //console.log(PUtils.readASCII(buff, off, 200));
+            while(buff[loff]!=0) {  obj.nam+=String.fromCharCode(buff[loff]);  loff++;  }
+            if(wgh>500) obj.nam+="-Bold";
+            //console.log(wgh, obj.nam);
+            //console.log(obj);
+        }
+        else if(fnm=="CREATEPALETTE") {  obj = {t:"pl"};  }
+        else if(fnm=="SETTEXTCOLOR") prms.tclr = [buff[loff]/255, buff[loff+1]/255, buff[loff+2]/255];
+        else if(fnm=="SETTEXTALIGN") prms.talg = rU(buff, loff);
+        else if(fnm=="MOVETO" ) {  UDOC.G.moveTo(gst, rS(buff,loff+2), rS(buff,loff));  }
+        else if(fnm=="LINETO"   ) {
+            if(gst.pth.cmds.length==0) {  var im=gst.ctm.slice(0);  UDOC.M.invert(im);  var p = UDOC.M.multPoint(im, gst.cpos);  UDOC.G.moveTo(gst, p[0], p[1]);  }
+            UDOC.G.lineTo(gst, rS(buff,loff+2), rS(buff,loff));  var ofill=prms.fill;  prms.fill=false;  FromWMF._draw(genv, gst, prms);  prms.fill=ofill;
+        }
+        else if(fnm=="POLYPOLYGON") {
+            var nop = rU(buff, loff);  loff+=2;
+            var pi = loff;  loff+= nop*2;
+
+            for(var i=0; i<nop; i++) {
+                var ppp = rU(buff, pi+i*2);
+                loff = FromWMF._drawPoly(buff,loff,ppp,gst, true);
+            }
+            FromWMF._draw(genv, gst, prms);
+        }
+        else if(fnm=="POLYGON" || fnm=="POLYLINE") {
+            var ppp = rU(buff, loff);  loff+=2;
+            loff = FromWMF._drawPoly(buff,loff,ppp,gst, fnm=="POLYGON");
+            var ofill = prms.fill;  prms.fill = (ofill && fnm=="POLYGON");
+            FromWMF._draw(genv, gst, prms);
+            prms.fill = ofill;
+        }
+        else if(fnm=="RECTANGLE" || fnm=="ELLIPSE") {
+            var y1 = rS(buff, loff);  loff+=2;
+            var x1 = rS(buff, loff);  loff+=2;
+            var y0 = rS(buff, loff);  loff+=2;
+            var x0 = rS(buff, loff);  loff+=2;
+            if(fnm=="RECTANGLE") {
+                UDOC.G.moveTo(gst, x0,y0);  UDOC.G.lineTo(gst, x1,y0);  UDOC.G.lineTo(gst, x1,y1);  UDOC.G.lineTo(gst, x0,y1);
+            } else {
+                var x = (x0+x1)/2, y = (y0+y1)/2;
+                UDOC.G.arc(gst,x,y,(y1-y0)/2,0,2*Math.PI, false);
+            }
+            UDOC.G.closePath(gst);
+            var ofill = prms.fill;  prms.fill = true;
+            FromWMF._draw(genv, gst, prms);
+            prms.fill = ofill;
+        }
+        else if(fnm=="STRETCHDIB") {
+            var rop = rU32(buff, loff);  loff+=4;
+            var cu = rU(buff, loff);  loff+=2;
+            var sh = rS(buff, loff);  loff+=2;
+            var sw = rS(buff, loff);  loff+=2;
+            var sy = rS(buff, loff);  loff+=2;
+            var sx = rS(buff, loff);  loff+=2;
+            var hD = rS(buff, loff);  loff+=2;
+            var wD = rS(buff, loff);  loff+=2;
+            var yD = rS(buff, loff);  loff+=2;
+            var xD = rS(buff, loff);  loff+=2;
+            //console.log(rop, cu, sx,sy,sw,sh,"-",dx,dy,dw,dh);
+            var img = FromWMF._loadDIB(buff, loff);
+
+            var ctm = gst.ctm.slice(0);
+            gst.ctm = [1,0,0,1,0,0];
+            UDOC.M.scale(gst.ctm, wD, -hD);
+            UDOC.M.translate(gst.ctm, xD, yD+hD);
+            UDOC.M.concat(gst.ctm, ctm);
+            genv.PutImage(gst, img, sw, sh);
+            gst.ctm = ctm;
+        }
+        else if(fnm=="EXTTEXTOUT") {
+            var rfy = rS(buff, loff);  loff+=2;
+            var rfx = rS(buff, loff);  loff+=2;
+
+            gst.font.Tm = [1,0,0,-1,0,0];
+            UDOC.M.rotate(gst.font.Tm, prms.fnt.orn*Math.PI/180);
+            UDOC.M.translate(gst.font.Tm, rfx, rfy);
+
+            var alg = prms.talg;
+            if     ((alg&6)==6) gst.font.Tal = 2;
+            else if((alg&7)==0) gst.font.Tal = 0;
+            else if((alg&4)==0) gst.font.Tal = 4;
+            else throw alg+" e";
+            if((alg&24)==24) {}  // baseline
+            else if((alg&24)==0) UDOC.M.translate(gst.font.Tm, 0, gst.font.Tfs);
+            else throw "e";
+
+            var crs = rU(buff, loff);  loff+=2;
+            var ops = rU(buff, loff);  loff+=2;  //if(ops!=0) throw "e";
+            if(ops&4) loff+=8;
+
+            //console.log(buff.slice(loff, loff+crs));
+            var str = "";
+            for(var i=0; i<crs; i++) {
+                var cc = buff[loff+i];
+                if(cc>127) {  i++;  cc=(cc<<8)|buff[loff+i];  }
+                str+=String.fromCharCode(cc);  //console.log(gst.font.Tfs, str);
+            }
+            //console.log(str);
+            //for(var i=0; i<crs; i++) str+=String.fromCharCode(rU(buff,loff+i*2));  //console.log(gst.font.Tfs, str);
+            var oclr = gst.colr;  gst.colr = prms.tclr;
+            genv.PutText(gst, str, str.length*gst.font.Tfs*0.5);  gst.colr=oclr;
+        }
+        else {
+            console.log(fnm, siz);
+        }
+
+        if(obj!=null) {
+            var li = 0;
+            while(tab[li]!=null) li++;
+            tab[li]=obj;
+        }
+
+        off+=siz-6;
+    }
+
+    genv.ShowPage();  genv.Done();
+}
+FromWMF._loadDIB = function(buff, off) {
+    var rS = FromWMF.B.readShort, rU = FromWMF.B.readUshort, rU32 = FromWMF.B.readUint;
+
+    var hsize = rU32(buff, off);  off+=4;
+
+    var w, h, cu;
+    if(hsize==0xc) throw "e";
+    else {
+        w = rU32(buff, off);  off+=4;
+        h = rU32(buff, off);  off+=4;
+        var ps = rU(buff, off);  off+=2;  if(ps!= 1) throw "e";
+        var bc = rU(buff, off);  off+=2;  if(bc!=1 && bc!=24 && bc!=32) throw bc+" e";
+        //console.log(w,h,ps,bc);
+
+        var cmpr = rU32(buff, off);  off+=4;  if(cmpr!=0) throw "e";
+        var size = rU32(buff, off);  off+=4;
+        var xppm = rU32(buff, off);  off+=4;
+        var yppm = rU32(buff, off);  off+=4;
+            cu = rU32(buff, off);  off+=4;   //if(cu!=0) throw cu+" e";  // number of colors used ... 0: all colors
+        var ci = rU32(buff, off);  off+=4;
+        //console.log(cmpr, size, xppm, yppm, cu, ci);
+    }
+
+    var area = w*h;
+    var img = new Uint8Array(area*4);
+    var rl = Math.floor(((w * ps * bc + 31) & ~31) / 8);
+    if(bc==1 )
+        for(var y=0; y<h; y++) {
+            var j = off+cu*4+(h-1-y)*rl;
+            for(var x=0; x<w; x++) {
+                var qi = (y*w+x)<<2, ind = (buff[j+(x>>>3)]>>>(7-(x&7)))&1;
+                img[qi  ] = buff[off+ind*4+2];
+                img[qi+1] = buff[off+ind*4+1];
+                img[qi+2] = buff[off+ind*4+0];
+                img[qi+3] = 255;
+            }
+        }
+    if(bc==24) {
+        for(var y=0; y<h; y++)
+            for(var x=0; x<w; x++) {
+                var qi = (y*w+x)<<2, ti=off+(h-1-y)*rl+x*3;
+                img[qi  ] = buff[ti+2];
+                img[qi+1] = buff[ti+1];
+                img[qi+2] = buff[ti+0];
+                img[qi+3] = 255;
+            }
+    }
+    if(bc==32) {
+        for(var y=0; y<h; y++)
+            for(var x=0; x<w; x++) {
+                var qi = (y*w+x)<<2, ti=off+(h-1-y)*rl+x*4;
+                img[qi  ] = buff[ti+2];
+                img[qi+1] = buff[ti+1];
+                img[qi+2] = buff[ti+0];
+                img[qi+3] = buff[ti+3];
+            }
+    }
+    return img;
+}
+
+
+FromWMF._updateCtm = function(prms, gst) {
+    var mat = [1,0,0,1,0,0];
+    var lbb = prms.lbb, bb = prms.bb;
+
+    UDOC.M.translate(mat, -lbb[0],-lbb[1]);
+    UDOC.M.scale(mat, 1/lbb[2], 1/lbb[3]);
+
+    UDOC.M.scale(mat, bb[2]-bb[0],bb[3]-bb[1]);
+    UDOC.M.translate(mat, bb[0],bb[1]);
+
+    gst.ctm = mat;
+}
+FromWMF._draw = function(genv, gst, prms) {
+    if(prms.fill                 ) genv.Fill  (gst, false);
+    if(prms.strk && gst.lwidth!=0) genv.Stroke(gst, false);
+    UDOC.G.newPath(gst);
+}
+FromWMF._drawPoly = function(buff, off, ppp, gst, cls) {
+    var rS = FromWMF.B.readShort;
+    for(var j=0; j<ppp; j++) {
+        var px = rS(buff, off);  off+=2;
+        var py = rS(buff, off);  off+=2;
+        if(j==0) UDOC.G.moveTo(gst,px,py);  else UDOC.G.lineTo(gst,px,py);
+    }
+    if(cls) UDOC.G.closePath(gst);
+    return off;
+}
+
+FromWMF.B = {
+    uint8 : new Uint8Array(4),
+    readShort  : function(buff,p)  {  var u8=FromWMF.B.uint8;  u8[0]=buff[p];  u8[1]=buff[p+1];  return FromWMF.B.int16 [0];  },
+    readUshort : function(buff,p)  {  var u8=FromWMF.B.uint8;  u8[0]=buff[p];  u8[1]=buff[p+1];  return FromWMF.B.uint16[0];  },
+    readUint   : function(buff,p)  {  var u8=FromWMF.B.uint8;  u8[0]=buff[p];  u8[1]=buff[p+1];  u8[2]=buff[p+2];  u8[3]=buff[p+3];  return FromWMF.B.uint32[0];  },
+    //readUint   : function(buff,p)  {  return (buff[p]*(256*256*256)) + ((buff[p+1]<<16) | (buff[p+2]<< 8) | buff[p+3]);  },
+    readASCII  : function(buff,p,l){  var s = "";  for(var i=0; i<l; i++) s += String.fromCharCode(buff[p+i]);  return s;    }
+}
+FromWMF.B.int16  = new Int16Array (FromWMF.B.uint8.buffer);
+FromWMF.B.uint16 = new Uint16Array(FromWMF.B.uint8.buffer);
+FromWMF.B.uint32 = new Uint32Array(FromWMF.B.uint8.buffer);
+
+
+FromWMF.C = {
+    META_EOF : 0x0000,
+    META_REALIZEPALETTE : 0x0035,
+    META_SETPALENTRIES : 0x0037,
+    META_SETBKMODE : 0x0102,
+    META_SETMAPMODE : 0x0103,
+    META_SETROP2 : 0x0104,
+    META_SETRELABS : 0x0105,
+    META_SETPOLYFILLMODE : 0x0106,
+    META_SETSTRETCHBLTMODE : 0x0107,
+    META_SETTEXTCHAREXTRA : 0x0108,
+    META_RESTOREDC : 0x0127,
+    META_RESIZEPALETTE : 0x0139,
+    META_DIBCREATEPATTERNBRUSH : 0x0142,
+    META_SETLAYOUT : 0x0149,
+    META_SETBKCOLOR : 0x0201,
+    META_SETTEXTCOLOR : 0x0209,
+    META_OFFSETVIEWPORTORG : 0x0211,
+    META_LINETO : 0x0213,
+    META_MOVETO : 0x0214,
+    META_OFFSETCLIPRGN : 0x0220,
+    META_FILLREGION : 0x0228,
+    META_SETMAPPERFLAGS : 0x0231,
+    META_SELECTPALETTE : 0x0234,
+    META_POLYGON : 0x0324,
+    META_POLYLINE : 0x0325,
+    META_SETTEXTJUSTIFICATION : 0x020A,
+    META_SETWINDOWORG : 0x020B,
+    META_SETWINDOWEXT : 0x020C,
+    META_SETVIEWPORTORG : 0x020D,
+    META_SETVIEWPORTEXT : 0x020E,
+    META_OFFSETWINDOWORG : 0x020F,
+    META_SCALEWINDOWEXT : 0x0410,
+    META_SCALEVIEWPORTEXT : 0x0412,
+    META_EXCLUDECLIPRECT : 0x0415,
+    META_INTERSECTCLIPRECT : 0x0416,
+    META_ELLIPSE : 0x0418,
+    META_FLOODFILL : 0x0419,
+    META_FRAMEREGION : 0x0429,
+    META_ANIMATEPALETTE : 0x0436,
+    META_TEXTOUT : 0x0521,
+    META_POLYPOLYGON : 0x0538,
+    META_EXTFLOODFILL : 0x0548,
+    META_RECTANGLE : 0x041B,
+    META_SETPIXEL : 0x041F,
+    META_ROUNDRECT : 0x061C,
+    META_PATBLT : 0x061D,
+    META_SAVEDC : 0x001E,
+    META_PIE : 0x081A,
+    META_STRETCHBLT : 0x0B23,
+    META_ESCAPE : 0x0626,
+    META_INVERTREGION : 0x012A,
+    META_PAINTREGION : 0x012B,
+    META_SELECTCLIPREGION : 0x012C,
+    META_SELECTOBJECT : 0x012D,
+    META_SETTEXTALIGN : 0x012E,
+    META_ARC : 0x0817,
+    META_CHORD : 0x0830,
+    META_BITBLT : 0x0922,
+    META_EXTTEXTOUT : 0x0a32,
+    META_SETDIBTODEV : 0x0d33,
+    META_DIBBITBLT : 0x0940,
+    META_DIBSTRETCHBLT : 0x0b41,
+    META_STRETCHDIB : 0x0f43,
+    META_DELETEOBJECT : 0x01f0,
+    META_CREATEPALETTE : 0x00f7,
+    META_CREATEPATTERNBRUSH : 0x01F9,
+    META_CREATEPENINDIRECT : 0x02FA,
+    META_CREATEFONTINDIRECT : 0x02FB,
+    META_CREATEBRUSHINDIRECT : 0x02FC,
+    META_CREATEREGION : 0x06FF
+};
+
+FromWMF.C2 = {
+    NEWFRAME : 0x0001,
+    ABORTDOC : 0x0002,
+    NEXTBAND : 0x0003,
+    SETCOLORTABLE : 0x0004,
+    GETCOLORTABLE : 0x0005,
+    FLUSHOUT : 0x0006,
+    DRAFTMODE : 0x0007,
+    QUERYESCSUPPORT : 0x0008,
+    SETABORTPROC : 0x0009,
+    STARTDOC : 0x000A,
+    ENDDOC : 0x000B,
+    GETPHYSPAGESIZE : 0x000C,
+    GETPRINTINGOFFSET : 0x000D,
+    GETSCALINGFACTOR : 0x000E,
+    META_ESCAPE_ENHANCED_METAFILE : 0x000F,
+    SETPENWIDTH : 0x0010,
+    SETCOPYCOUNT : 0x0011,
+    SETPAPERSOURCE : 0x0012,
+    PASSTHROUGH : 0x0013,
+    GETTECHNOLOGY : 0x0014,
+    SETLINECAP : 0x0015,
+    SETLINEJOIN : 0x0016,
+    SETMITERLIMIT : 0x0017,
+    BANDINFO : 0x0018,
+    DRAWPATTERNRECT : 0x0019,
+    GETVECTORPENSIZE : 0x001A,
+    GETVECTORBRUSHSIZE : 0x001B,
+    ENABLEDUPLEX : 0x001C,
+    GETSETPAPERBINS : 0x001D,
+    GETSETPRINTORIENT : 0x001E,
+    ENUMPAPERBINS : 0x001F,
+    SETDIBSCALING : 0x0020,
+    EPSPRINTING : 0x0021,
+    ENUMPAPERMETRICS : 0x0022,
+    GETSETPAPERMETRICS : 0x0023,
+    POSTSCRIPT_DATA : 0x0025,
+    POSTSCRIPT_IGNORE : 0x0026,
+    GETDEVICEUNITS : 0x002A,
+    GETEXTENDEDTEXTMETRICS : 0x0100,
+    GETPAIRKERNTABLE : 0x0102,
+    EXTTEXTOUT : 0x0200,
+    GETFACENAME : 0x0201,
+    DOWNLOADFACE : 0x0202,
+    METAFILE_DRIVER : 0x0801,
+    QUERYDIBSUPPORT : 0x0C01,
+    BEGIN_PATH : 0x1000,
+    CLIP_TO_PATH : 0x1001,
+    END_PATH : 0x1002,
+    OPEN_CHANNEL : 0x100E,
+    DOWNLOADHEADER : 0x100F,
+    CLOSE_CHANNEL : 0x1010,
+    POSTSCRIPT_PASSTHROUGH : 0x1013,
+    ENCAPSULATED_POSTSCRIPT : 0x1014,
+    POSTSCRIPT_IDENTIFY : 0x1015,
+    POSTSCRIPT_INJECTION : 0x1016,
+    CHECKJPEGFORMAT : 0x1017,
+    CHECKPNGFORMAT : 0x1018,
+    GET_PS_FEATURESETTING : 0x1019,
+    MXDC_ESCAPE : 0x101A,
+    SPCLPASSTHROUGH2 : 0x11D8
+}
+FromWMF.K = [];
+FromWMF.K2= [];
+
+(function() {
+    var inp, out, stt;
+    inp = FromWMF.C;   out = FromWMF.K;   stt=5;
+    for(var p in inp) out[inp[p]] = p.slice(stt);
+    inp = FromWMF.C2;  out = FromWMF.K2;  stt=0;
+    for(var p in inp) out[inp[p]] = p.slice(stt);
+    //console.log(FromWMF.K, FromWMF.K2);
+}  )();
+
+function ToContext2D(needPage, scale)
+{
+    this.canvas = document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d");
+    this.bb = null;
+    this.currPage = 0;
+    this.needPage = needPage;
+    this.scale = scale;
+}
+ToContext2D.prototype.StartPage = function(x,y,w,h) {
+    if(this.currPage!=this.needPage) return;
+    this.bb = [x,y,w,h];
+    var scl = this.scale, dpr = window.devicePixelRatio;
+    var cnv = this.canvas, ctx = this.ctx;
+    cnv.width = Math.round(w*scl);  cnv.height = Math.round(h*scl);
+    ctx.translate(0,h*scl);  ctx.scale(scl,-scl);
+    cnv.setAttribute("style", "border:1px solid; width:"+(cnv.width/dpr)+"px; height:"+(cnv.height/dpr)+"px");
+}
+ToContext2D.prototype.Fill = function(gst, evenOdd) {
+    if(this.currPage!=this.needPage) return;
+    var ctx = this.ctx;
+    ctx.beginPath();
+    this._setStyle(gst, ctx);
+    this._draw(gst.pth, ctx);
+    ctx.fill();
+}
+ToContext2D.prototype.Stroke = function(gst) {
+    if(this.currPage!=this.needPage) return;
+    var ctx = this.ctx;
+    ctx.beginPath();
+    this._setStyle(gst, ctx);
+    this._draw(gst.pth, ctx);
+    ctx.stroke();
+}
+ToContext2D.prototype.PutText = function(gst, str, stw) {
+    if(this.currPage!=this.needPage) return;
+    var scl = this._scale(gst.ctm);
+    var ctx = this.ctx;
+    this._setStyle(gst, ctx);
+    ctx.save();
+    var m = [1,0,0,-1,0,0];  this._concat(m, gst.font.Tm);  this._concat(m, gst.ctm);
+    //console.log(str, m, gst);  throw "e";
+    ctx.transform(m[0],m[1],m[2],m[3],m[4],m[5]);
+    ctx.fillText(str,0,0);
+    ctx.restore();
+}
+ToContext2D.prototype.PutImage = function(gst, buff, w, h, msk) {
+    if(this.currPage!=this.needPage) return;
+    var ctx = this.ctx;
+
+    if(buff.length==w*h*4) {
+        buff = buff.slice(0);
+        if(msk && msk.length==w*h*4) for(var i=0; i<buff.length; i+=4) buff[i+3] = msk[i+1];
+
+        var cnv = document.createElement("canvas"), cctx = cnv.getContext("2d");
+        cnv.width = w;  cnv.height = h;
+        var imgd = cctx.createImageData(w,h);
+        for(var i=0; i<buff.length; i++) imgd.data[i]=buff[i];
+        cctx.putImageData(imgd,0,0);
+
+        ctx.save();
+        var m = [1,0,0,1,0,0];  this._concat(m, [1/w,0,0,-1/h,0,1]);  this._concat(m, gst.ctm);
+        ctx.transform(m[0],m[1],m[2],m[3],m[4],m[5]);
+        ctx.drawImage(cnv,0,0);
+        ctx.restore();
+    }
+}
+ToContext2D.prototype.ShowPage = function() {  this.currPage++;  }
+ToContext2D.prototype.Done = function() {}
+
+
+ToContext2D.prototype._setStyle = function(gst, ctx) {
+    var scl = this._scale(gst.ctm);
+    ctx.fillStyle = this._getFill(gst.colr, gst.ca, ctx);
+    ctx.strokeStyle=this._getFill(gst.COLR, gst.CA, ctx);
+
+    ctx.lineCap = ["butt","round","square"][gst.lcap];
+    ctx.lineJoin= ["miter","round","bevel"][gst.ljoin];
+    ctx.lineWidth=gst.lwidth*scl;
+    var dsh = gst.dash.slice(0);  for(var i=0; i<dsh.length; i++) dsh[i] = ToPDF._flt(dsh[i]*scl);
+    ctx.setLineDash(dsh);
+    ctx.miterLimit = gst.mlimit*scl;
+
+    var fn = gst.font.Tf, ln = fn.toLowerCase();
+    var p0 = ln.indexOf("bold")!=-1 ? "bold " : "";
+    var p1 = (ln.indexOf("italic")!=-1 || ln.indexOf("oblique")!=-1) ? "italic " : "";
+    ctx.font = p0+p1 + gst.font.Tfs+"px \""+fn+"\"";
+}
+ToContext2D.prototype._getFill = function(colr, ca, ctx)
+{
+    if(colr.typ==null) return this._colr(colr,ca);
+    else {
+        var grd = colr, crd = grd.crds, mat = grd.mat, scl=this._scale(mat), gf;
+        if     (grd.typ=="lin") {
+            var p0 = this._multPoint(mat,crd.slice(0,2)), p1 = this._multPoint(mat,crd.slice(2));
+            gf=ctx.createLinearGradient(p0[0],p0[1],p1[0],p1[1]);
+        }
+        else if(grd.typ=="rad") {
+            var p0 = this._multPoint(mat,crd.slice(0,2)), p1 = this._multPoint(mat,crd.slice(3));
+            gf=ctx.createRadialGradient(p0[0],p0[1],crd[2]*scl,p1[0],p1[1],crd[5]*scl);
+        }
+        for(var i=0; i<grd.grad.length; i++)  gf.addColorStop(grd.grad[i][0],this._colr(grd.grad[i][1], ca));
+        return gf;
+    }
+}
+ToContext2D.prototype._colr  = function(c,a) {  return "rgba("+Math.round(c[0]*255)+","+Math.round(c[1]*255)+","+Math.round(c[2]*255)+","+a+")";  };
+ToContext2D.prototype._scale = function(m)  {  return Math.sqrt(Math.abs(m[0]*m[3]-m[1]*m[2]));  };
+ToContext2D.prototype._concat= function(m,w  ) {
+        var a=m[0],b=m[1],c=m[2],d=m[3],tx=m[4],ty=m[5];
+        m[0] = (a *w[0])+(b *w[2]);       m[1] = (a *w[1])+(b *w[3]);
+        m[2] = (c *w[0])+(d *w[2]);       m[3] = (c *w[1])+(d *w[3]);
+        m[4] = (tx*w[0])+(ty*w[2])+w[4];  m[5] = (tx*w[1])+(ty*w[3])+w[5];
+}
+ToContext2D.prototype._multPoint= function(m, p) {  var x=p[0],y=p[1];  return [x*m[0]+y*m[2]+m[4],   x*m[1]+y*m[3]+m[5]];  },
+ToContext2D.prototype._draw  = function(path, ctx)
+{
+    var c = 0, crds = path.crds;
+    for(var j=0; j<path.cmds.length; j++) {
+        var cmd = path.cmds[j];
+        if     (cmd=="M") {  ctx.moveTo(crds[c], crds[c+1]);  c+=2;  }
+        else if(cmd=="L") {  ctx.lineTo(crds[c], crds[c+1]);  c+=2;  }
+        else if(cmd=="C") {  ctx.bezierCurveTo(crds[c], crds[c+1], crds[c+2], crds[c+3], crds[c+4], crds[c+5]);  c+=6;  }
+        else if(cmd=="Q") {  ctx.quadraticCurveTo(crds[c], crds[c+1], crds[c+2], crds[c+3]);  c+=4;  }
+        else if(cmd=="Z") {  ctx.closePath();  }
+    }
+}
+
+var UDOC = {};
+
+UDOC.G = {
+    concat : function(p,r) {
+        for(var i=0; i<r.cmds.length; i++) p.cmds.push(r.cmds[i]);
+        for(var i=0; i<r.crds.length; i++) p.crds.push(r.crds[i]);
+    },
+    getBB  : function(ps) {
+        var x0=1e99, y0=1e99, x1=-x0, y1=-y0;
+        for(var i=0; i<ps.length; i+=2) {  var x=ps[i],y=ps[i+1];  if(x<x0)x0=x; else if(x>x1)x1=x;  if(y<y0)y0=y;  else if(y>y1)y1=y;  }
+        return [x0,y0,x1,y1];
+    },
+    rectToPath: function(r) {  return  {cmds:["M","L","L","L","Z"],crds:[r[0],r[1],r[2],r[1], r[2],r[3],r[0],r[3]]};  },
+    // a inside b
+    insideBox: function(a,b) {  return b[0]<=a[0] && b[1]<=a[1] && a[2]<=b[2] && a[3]<=b[3];   },
+    isBox : function(p, bb) {
+        var sameCrd8 = function(pcrd, crds) {
+            for(var o=0; o<8; o+=2) {  var eq = true;  for(var j=0; j<8; j++) if(Math.abs(crds[j]-pcrd[(j+o)&7])>=2) {  eq = false;  break;  }    if(eq) return true;  }
+            return false;
+        };
+        if(p.cmds.length>10) return false;
+        var cmds=p.cmds.join(""), crds=p.crds;
+        var sameRect = false;
+        if((cmds=="MLLLZ"  && crds.length== 8)
+         ||(cmds=="MLLLLZ" && crds.length==10) ) {
+            if(crds.length==10) crds=crds.slice(0,8);
+            var x0=bb[0],y0=bb[1],x1=bb[2],y1=bb[3];
+            if(!sameRect) sameRect = sameCrd8(crds, [x0,y0,x1,y0,x1,y1,x0,y1]);
+            if(!sameRect) sameRect = sameCrd8(crds, [x0,y1,x1,y1,x1,y0,x0,y0]);
+        }
+        return sameRect;
+    },
+    boxArea: function(a) {  var w=a[2]-a[0], h=a[3]-a[1];  return w*h;  },
+    newPath: function(gst    ) {  gst.pth = {cmds:[], crds:[]};  },
+    moveTo : function(gst,x,y) {  var p=UDOC.M.multPoint(gst.ctm,[x,y]);  //if(gst.cpos[0]==p[0] && gst.cpos[1]==p[1]) return;
+                                    gst.pth.cmds.push("M");  gst.pth.crds.push(p[0],p[1]);  gst.cpos = p;  },
+    lineTo : function(gst,x,y) {  var p=UDOC.M.multPoint(gst.ctm,[x,y]);  if(gst.cpos[0]==p[0] && gst.cpos[1]==p[1]) return;
+                                    gst.pth.cmds.push("L");  gst.pth.crds.push(p[0],p[1]);  gst.cpos = p;  },
+    curveTo: function(gst,x1,y1,x2,y2,x3,y3) {   var p;
+        p=UDOC.M.multPoint(gst.ctm,[x1,y1]);  x1=p[0];  y1=p[1];
+        p=UDOC.M.multPoint(gst.ctm,[x2,y2]);  x2=p[0];  y2=p[1];
+        p=UDOC.M.multPoint(gst.ctm,[x3,y3]);  x3=p[0];  y3=p[1];  gst.cpos = p;
+        gst.pth.cmds.push("C");
+        gst.pth.crds.push(x1,y1,x2,y2,x3,y3);
+    },
+    closePath: function(gst  ) {  gst.pth.cmds.push("Z");  },
+    arc : function(gst,x,y,r,a0,a1, neg) {
+
+        // circle from a0 counter-clock-wise to a1
+        if(neg) while(a1>a0) a1-=2*Math.PI;
+        else    while(a1<a0) a1+=2*Math.PI;
+        var th = (a1-a0)/4;
+
+        var x0 = Math.cos(th/2), y0 = -Math.sin(th/2);
+        var x1 = (4-x0)/3, y1 = y0==0 ? y0 : (1-x0)*(3-x0)/(3*y0);
+        var x2 = x1, y2 = -y1;
+        var x3 = x0, y3 = -y0;
+
+        var p0 = [x0,y0], p1 = [x1,y1], p2 = [x2,y2], p3 = [x3,y3];
+
+        var pth = {cmds:[(gst.pth.cmds.length==0)?"M":"L","C","C","C","C"], crds:[x0,y0,x1,y1,x2,y2,x3,y3]};
+
+        var rot = [1,0,0,1,0,0];  UDOC.M.rotate(rot,-th);
+
+        for(var i=0; i<3; i++) {
+            p1 = UDOC.M.multPoint(rot,p1);  p2 = UDOC.M.multPoint(rot,p2);  p3 = UDOC.M.multPoint(rot,p3);
+            pth.crds.push(p1[0],p1[1],p2[0],p2[1],p3[0],p3[1]);
+        }
+
+        var sc = [r,0,0,r,x,y];
+        UDOC.M.rotate(rot, -a0+th/2);  UDOC.M.concat(rot, sc);  UDOC.M.multArray(rot, pth.crds);
+        UDOC.M.multArray(gst.ctm, pth.crds);
+
+        UDOC.G.concat(gst.pth, pth);
+        var y=pth.crds.pop();  x=pth.crds.pop();
+        gst.cpos = [x,y];
+    },
+    toPoly : function(p) {
+        if(p.cmds[0]!="M" || p.cmds[p.cmds.length-1]!="Z") return null;
+        for(var i=1; i<p.cmds.length-1; i++) if(p.cmds[i]!="L") return null;
+        var out = [], cl = p.crds.length;
+        if(p.crds[0]==p.crds[cl-2] && p.crds[1]==p.crds[cl-1]) cl-=2;
+        for(var i=0; i<cl; i+=2) out.push([p.crds[i],p.crds[i+1]]);
+        if(UDOC.G.polyArea(p.crds)<0) out.reverse();
+        return out;
+    },
+    fromPoly : function(p) {
+        var o = {cmds:[],crds:[]};
+        for(var i=0; i<p.length; i++) { o.crds.push(p[i][0], p[i][1]);  o.cmds.push(i==0?"M":"L");  }
+        o.cmds.push("Z");
+        return o;
+    },
+    polyArea : function(p) {
+        if(p.length <6) return 0;
+        var l = p.length - 2;
+        var sum = (p[0]-p[l]) * (p[l+1]+p[1]);
+        for(var i=0; i<l; i+=2)
+            sum += (p[i+2]-p[i]) * (p[i+1]+p[i+3]);
+        return - sum * 0.5;
+    },
+    polyClip : function(p0, p1) {  // p0 clipped by p1
+        var cp1, cp2, s, e;
+        var inside = function (p) {
+            return (cp2[0]-cp1[0])*(p[1]-cp1[1]) > (cp2[1]-cp1[1])*(p[0]-cp1[0]);
+        };
+        var isc = function () {
+            var dc = [ cp1[0] - cp2[0], cp1[1] - cp2[1] ],
+                dp = [ s[0] - e[0], s[1] - e[1] ],
+                n1 = cp1[0] * cp2[1] - cp1[1] * cp2[0],
+                n2 = s[0] * e[1] - s[1] * e[0],
+                n3 = 1.0 / (dc[0] * dp[1] - dc[1] * dp[0]);
+            return [(n1*dp[0] - n2*dc[0]) * n3, (n1*dp[1] - n2*dc[1]) * n3];
+        };
+        var out = p0;
+        cp1 = p1[p1.length-1];
+        for (j in p1) {
+            var cp2 = p1[j];
+            var inp = out;
+            out = [];
+            s = inp[inp.length - 1]; //last on the input list
+            for (i in inp) {
+                var e = inp[i];
+                if (inside(e)) {
+                    if (!inside(s)) {
+                        out.push(isc());
+                    }
+                    out.push(e);
+                }
+                else if (inside(s)) {
+                    out.push(isc());
+                }
+                s = e;
+            }
+            cp1 = cp2;
+        }
+        return out
+    }
+}
+UDOC.M = {
+    getScale : function(m) {  return Math.sqrt(Math.abs(m[0]*m[3]-m[1]*m[2]));  },
+    translate: function(m,x,y) {  UDOC.M.concat(m, [1,0,0,1,x,y]);  },
+    rotate   : function(m,a  ) {  UDOC.M.concat(m, [Math.cos(a), -Math.sin(a), Math.sin(a), Math.cos(a),0,0]);  },
+    scale    : function(m,x,y) {  UDOC.M.concat(m, [x,0,0,y,0,0]);  },
+    concat   : function(m,w  ) {
+        var a=m[0],b=m[1],c=m[2],d=m[3],tx=m[4],ty=m[5];
+        m[0] = (a *w[0])+(b *w[2]);       m[1] = (a *w[1])+(b *w[3]);
+        m[2] = (c *w[0])+(d *w[2]);       m[3] = (c *w[1])+(d *w[3]);
+        m[4] = (tx*w[0])+(ty*w[2])+w[4];  m[5] = (tx*w[1])+(ty*w[3])+w[5];
+    },
+    invert   : function(m    ) {
+        var a=m[0],b=m[1],c=m[2],d=m[3],tx=m[4],ty=m[5], adbc=a*d-b*c;
+        m[0] = d/adbc;  m[1] = -b/adbc;  m[2] =-c/adbc;  m[3] =  a/adbc;
+        m[4] = (c*ty - d*tx)/adbc;  m[5] = (b*tx - a*ty)/adbc;
+    },
+    multPoint: function(m, p ) {  var x=p[0],y=p[1];  return [x*m[0]+y*m[2]+m[4],   x*m[1]+y*m[3]+m[5]];  },
+    multArray: function(m, a ) {  for(var i=0; i<a.length; i+=2) {  var x=a[i],y=a[i+1];  a[i]=x*m[0]+y*m[2]+m[4];  a[i+1]=x*m[1]+y*m[3]+m[5];  }  }
+}
+UDOC.C = {
+    srgbGamma : function(x) {  return x < 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1.0 / 2.4) - 0.055;  },
+    cmykToRgb : function(clr) {
+        var c=clr[0], m=clr[1], y=clr[2], k=clr[3];
+        // return [1-Math.min(1,c+k), 1-Math.min(1, m+k), 1-Math.min(1,y+k)];
+        var r = 255
+        + c * (-4.387332384609988  * c + 54.48615194189176  * m +  18.82290502165302  * y + 212.25662451639585 * k +  -285.2331026137004)
+        + m * ( 1.7149763477362134 * m - 5.6096736904047315 * y + -17.873870861415444 * k - 5.497006427196366)
+        + y * (-2.5217340131683033 * y - 21.248923337353073 * k +  17.5119270841813)
+        + k * (-21.86122147463605  * k - 189.48180835922747);
+        var g = 255
+        + c * (8.841041422036149   * c + 60.118027045597366 * m +  6.871425592049007  * y + 31.159100130055922 * k +  -79.2970844816548)
+        + m * (-15.310361306967817 * m + 17.575251261109482 * y +  131.35250912493976 * k - 190.9453302588951)
+        + y * (4.444339102852739   * y + 9.8632861493405    * k -  24.86741582555878)
+        + k * (-20.737325471181034 * k - 187.80453709719578);
+        var b = 255
+        + c * (0.8842522430003296  * c + 8.078677503112928  * m +  30.89978309703729  * y - 0.23883238689178934 * k + -14.183576799673286)
+        + m * (10.49593273432072   * m + 63.02378494754052  * y +  50.606957656360734 * k - 112.23884253719248)
+        + y * (0.03296041114873217 * y + 115.60384449646641 * k + -193.58209356861505)
+        + k * (-22.33816807309886  * k - 180.12613974708367);
+
+        return [Math.max(0, Math.min(1, r/255)), Math.max(0, Math.min(1, g/255)), Math.max(0, Math.min(1, b/255))];
+        //var iK = 1-c[3];
+        //return [(1-c[0])*iK, (1-c[1])*iK, (1-c[2])*iK];
+    },
+    labToRgb  : function(lab) {
+        var k = 903.3, e = 0.008856, L = lab[0], a = lab[1], b = lab[2];
+        var fy = (L+16)/116, fy3 = fy*fy*fy;
+        var fz = fy - b/200, fz3 = fz*fz*fz;
+        var fx = a/500 + fy, fx3 = fx*fx*fx;
+        var zr = fz3>e ? fz3 : (116*fz-16)/k;
+        var yr = fy3>e ? fy3 : (116*fy-16)/k;
+        var xr = fx3>e ? fx3 : (116*fx-16)/k;
+
+        var X = xr*96.72, Y = yr*100, Z = zr*81.427, xyz = [X/100,Y/100,Z/100];
+        var x2s = [3.1338561, -1.6168667, -0.4906146, -0.9787684,  1.9161415,  0.0334540, 0.0719453, -0.2289914,  1.4052427];
+
+        var rgb = [ x2s[0]*xyz[0] + x2s[1]*xyz[1] + x2s[2]*xyz[2],
+                    x2s[3]*xyz[0] + x2s[4]*xyz[1] + x2s[5]*xyz[2],
+                    x2s[6]*xyz[0] + x2s[7]*xyz[1] + x2s[8]*xyz[2]  ];
+        for(var i=0; i<3; i++) rgb[i] = Math.max(0, Math.min(1, UDOC.C.srgbGamma(rgb[i])));
+        return rgb;
+    }
+}
+
+UDOC.getState = function(crds) {
+    return {
+        font : UDOC.getFont(),
+        dd: {flat:1},  // device-dependent
+        space :"/DeviceGray",
+        // fill
+        ca: 1,
+        colr  : [0,0,0],
+        sspace:"/DeviceGray",
+        // stroke
+        CA: 1,
+        COLR : [0,0,0],
+        bmode: "/Normal",
+        SA:false, OPM:0, AIS:false, OP:false, op:false, SMask:"/None",
+        lwidth : 1,
+        lcap: 0,
+        ljoin: 0,
+        mlimit: 10,
+        SM : 0.1,
+        doff: 0,
+        dash: [],
+        ctm : [1,0,0,1,0,0],
+        cpos: [0,0],
+        pth : {cmds:[],crds:[]},
+        cpth: crds ? UDOC.G.rectToPath(crds) : null  // clipping path
+    };
+}
+
+UDOC.getFont = function() {
+    return {
+        Tc: 0, // character spacing
+        Tw: 0, // word spacing
+        Th:100, // horizontal scale
+        Tl: 0, // leading
+        Tf:"Helvetica-Bold",
+        Tfs:1, // font size
+        Tmode:0, // rendering mode
+        Trise:0, // rise
+        Tk: 0,  // knockout
+        Tal:0,  // align, 0: left, 1: right, 2: center
+        Tun:0,  // 0: no, 1: underline
+
+        Tm :[1,0,0,1,0,0],
+        Tlm:[1,0,0,1,0,0],
+        Trm:[1,0,0,1,0,0]
+    };
+}
+
+const WMF2PNG = (() => {
+
+function WMF2PNG_()
+{
+}
+
+WMF2PNG_.prototype.getBase64 = async function(file)
+{
+    return new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          res(reader.result);
+        };
+        reader.readAsDataURL(file);
+    });
+};
+
+WMF2PNG_.prototype.getPNG = async function(file)
+{
+    if (typeof file === "string") {
+        const base64 = file.replace(/.*;base64,/, '');
+        return this.transformWMF(base64);
+    }
+    const src = await this.getBase64(file);
+    const base64 = src.replace(/.*;base64,/, '');
+    return this.transformWMF(base64);
+};
+
+WMF2PNG_.prototype.transformWMF = function(base64)
+{
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = rawData.length - 1; i >= 0; --i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    let pNum = 0;
+    let scale = 1;
+    let wrt = new ToContext2D(pNum, scale);
+    FromWMF.Parse(outputArray, wrt);
+    let canvas = wrt.canvas;
+    let { width, height } = canvas;
+    let ctx = canvas.getContext('2d');
+    let { data } = ctx.getImageData(0, 0, width, height);
+    let row_len = width * 4;
+    let col_len = height;
+    let arr = [];
+    for (let i = 0; i < col_len; i++) {
+        let per_arr = data.slice(i * row_len, (i + 1) * row_len)
+        arr.push(per_arr)
+    }
+    var canvas2 = document.createElement('canvas');
+    canvas2.width = width
+    canvas2.height = height
+    let ctx2 = canvas2.getContext('2d');
+    let n = row_len * col_len
+    let arr2 = new Uint8ClampedArray(n)
+    let curr_row = 0;
+    let len = arr.length;
+    for (let i = len - 1; i >= 0; i--) {
+        let curr_row = arr[i]
+        for (let j = 0; j < curr_row.length; j++) {
+            arr2[(len - i) * row_len + j] = curr_row[j]
+        }
+    }
+    let imageData = new ImageData(arr2, width, height)
+    ctx2.putImageData(imageData, 0, 0)
+    let dataurl = canvas2.toDataURL()
+    let img = new Image()
+    img.src = dataurl
+    img.width = width
+    img.height = height
+    return img.outerHTML;
+};
+
+return new WMF2PNG_();
+
+})();

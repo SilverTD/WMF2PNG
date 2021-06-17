@@ -30,9 +30,19 @@
                       <code class="language-javascript">WMF2PNG.getPNG(file) // <--- .wmf image
 .then((result) => console.log(result)); // <--- this is png image</code>
                   </pre>
-                  <p class="container">or</p>
                   <pre class="container">
                       <code class="language-javascript">const result = await WMF2PNG.getPNG(file); // <--- .wmf image
+console.log(result); // <--- this is png image</code>
+                  </pre>
+
+                  <p class="ml-3">And you can also use base64 wmf</p>
+
+                  <pre class="container">
+                      <code class="language-javascript">WMF2PNG.getPNG(src) // <--- .wmf base64 string
+.then((result) => console.log(result)); // <--- this is png image</code>
+                  </pre>
+                  <pre class="container">
+                      <code class="language-javascript">const result = await WMF2PNG.getPNG(src); // <--- .wmf base64 string
 console.log(result); // <--- this is png image</code>
                   </pre>
               </div>
@@ -45,6 +55,10 @@ console.log(result); // <--- this is png image</code>
               <input type="file" class="custom-file-input" id="files">
               <label class="custom-file-label" for="inputGroupFile01">Upload your .wmf image</label>
           </div>
+          <div class="form-group mt-2 d-flex">
+              <input type="text" class="form-control" id="base64" placeholder="Your wmf base64 string">
+              <button id="convert" class="btn btn-dark">Convert</button>
+          </div>
           <div id="img" class="container mt-5"></div>
           <a href="../WMF2PNG.js" download class="mt-5"><h2>Download WMF2PNG.js</h2></a>
       </div>
@@ -54,10 +68,7 @@ console.log(result); // <--- this is png image</code>
       <script type="text/javascript">
           hljs.highlightAll();
       </script>
-      <script src="./js/UDOC.js"></script>
-      <script src="./js/FromWMF.js"></script>
-      <script src="./js/ToContext2D.js"></script>
-      <script src="./js/WMF2PNG.js"></script>
+      <script src="./js/WMF2PNG.min.js"></script>
       <script src="./js/demo.js"></script>
   </body>
 </html>
