@@ -1,26 +1,18 @@
 # WMF2PNG .wmf to .png
 
-WMF2PNG is designed to convert ``.wmf`` to ``.png`` image.
+## What is a WMF File?
+`.WMF` is short for Windows Metafile. This image format was designed by Microsoft in the 1990s for their Windows Operating System. WMF files contain both vector graphics and raster components at the same time. It includes sort of programming commands which enables the creation of lines, circles, and rectangles on the viewing applications. This 16-bit image format is portable between applications. Also, WMF is the native vector format of Microsoft Office applications (MS Word, MS PowerPoint and MS Publisher). This format is also supported in PaintShop Pro.
 
-So to convert ``.wmf`` image to ``.png`` image, you need to download [`WMF2PNG.min.js`](WMF2PNG.min.js) file then connect to html and finally type below code:
+## What is a PNG File?
+`.PNG` stands for “Portable Graphics Format”. It is the most frequently used uncompressed raster image format on the internet. This lossless data compression format was created to replace the Graphics Interchange Format (GIF). PNG file format is an open format with no copyright limitations. Like GIF images, PNG also have the ability to display transparent backgrounds. In addition to that, PNG files are capable of containing 24bit RGB color palettes and greyscale images. Basically, this image format was designed to transfer images on the internet but with PaintShop Pro, PNG files can be applied with lots of editing effects.
 
-```javascript
-WMF2PNG.getPNG(file) // <--- .wmf image
-.then((result) => console.log(result)); // <--- this is png image
+## What is WMF2PNG?
+WMF2PNG is designed to convert .wmf images to .png images.
 
-```
-```javascript
-const result = await WMF2PNG.getPNG(file); // <--- .wmf image
-console.log(result); // <--- this is png image
-```
-And you can also use base64 wmf.
+## How to use it ?
+To use it you need to download [`WMF2PNG.min.js`](WMF2PNG.min.js) file and connect it to your html file, then add this code to your js file:
 
 ```javascript
-WMF2PNG.getPNG(src) // <--- .wmf base64 string
-.then((result) => console.log(result)); // <--- this is png image
-
-```
-```javascript
-const result = await WMF2PNG.getPNG(src); // <--- .wmf base64 string
-console.log(result); // <--- this is png image
+WMF2PNG.getPNG(file) // <--- .wmf image or .wmf base64 string
+.then((result) => console.log(result)); // <--- png image
 ```
